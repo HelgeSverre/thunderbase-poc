@@ -217,6 +217,8 @@ func (tb *ThunderBase) createTable(name string) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("> Created table: %s", name)
+
 	return tb.initDatabase() // Re-init to create triggers for the new table
 }
 
