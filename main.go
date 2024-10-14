@@ -13,6 +13,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const dbPath = "./thunderbase.db"
+const changesTable = "_changes"
+
 type ChangeEvent struct {
 	Collection string      `json:"collection"`
 	Event      string      `json:"event"`
@@ -52,19 +55,24 @@ func NewThunderBase(dbPath string) (*ThunderBase, error) {
 }
 
 func (tb *ThunderBase) initDatabase() error {
+
+	log.Println("Initializing database...")
+
 	// Create the changes table
-	_, err := tb.db.Exec(`
-		CREATE TABLE IF NOT EXISTS _changes (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			collection TEXT NOT NULL,
-			event TEXT NOT NULL,
-			data JSON NOT NULL,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		)
-	`)
+	_, err := tb.db.Exec(fmt.Sprintf(`
+        CREATE TABLE IF NOT EXISTS %s (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            collection TEXT NOT NULL,
+            event TEXT NOT NULL,
+            data JSON NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `, changesTable))
 	if err != nil {
-		return fmt.Errorf("failed to create _changes table: %v", err)
+		return fmt.Errorf("failed to create %s table: %v", changesTable, err)
 	}
+
+	log.Println("Created changes table: ", changesTable)
 
 	// Create a trigger function for each table
 	tables, err := tb.getTables()
@@ -75,19 +83,21 @@ func (tb *ThunderBase) initDatabase() error {
 	log.Printf("Creating triggers for tables: %v", tables)
 
 	for _, table := range tables {
-		if table == "_changes" {
-			continue
+		// Get column names for the table
+		columns, err := tb.getTableColumns(table)
+		if err != nil {
+			return fmt.Errorf("failed to get columns for table %s: %v", table, err)
 		}
 
 		for _, event := range []string{"INSERT", "UPDATE", "DELETE"} {
 			triggerSQL := fmt.Sprintf(`
-				CREATE TRIGGER IF NOT EXISTS %s_%s_trigger
-				AFTER %s ON %s
-				BEGIN
-					INSERT INTO _changes (collection, event, data)
-                    VALUES ('%s', '%s', json_object('id', CASE WHEN '%s' = 'DELETE' THEN OLD.id ELSE NEW.id END));
-				END;
-            `, table, event, event, table, table, event, event)
+                CREATE TRIGGER IF NOT EXISTS %s_%s_trigger
+                AFTER %s ON %s
+                BEGIN
+                    INSERT INTO %s (collection, event, data)
+                    VALUES ('%s', '%s', json_object(%s));
+                END;
+            `, table, event, event, table, changesTable, table, event, tb.buildJsonObject(columns, event))
 
 			_, err := tb.db.Exec(triggerSQL)
 			if err != nil {
@@ -99,13 +109,50 @@ func (tb *ThunderBase) initDatabase() error {
 	return nil
 }
 
+func (tb *ThunderBase) getTableColumns(table string) ([]string, error) {
+	rows, err := tb.db.Query(fmt.Sprintf("PRAGMA table_info(%s)", table))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var columns []string
+	for rows.Next() {
+		//goland:noinspection ALL
+		var (
+			cid, notnull, pk int
+			name, type_      string
+			dflt_value       sql.NullString
+		)
+
+		if err := rows.Scan(&cid, &name, &type_, &notnull, &dflt_value, &pk); err != nil {
+			return nil, err
+		}
+		columns = append(columns, name)
+	}
+	return columns, nil
+}
+
+func (tb *ThunderBase) buildJsonObject(columns []string, event string) string {
+	var pairs []string
+	for _, col := range columns {
+		var value string
+		if event == "DELETE" {
+			value = fmt.Sprintf("OLD.%s", col)
+		} else {
+			value = fmt.Sprintf("NEW.%s", col)
+		}
+		pairs = append(pairs, fmt.Sprintf("'%s', %s", col, value))
+	}
+	return strings.Join(pairs, ", ")
+}
+
 func (tb *ThunderBase) getTables() ([]string, error) {
 	rows, err := tb.db.Query(`
         SELECT name FROM sqlite_master 
         WHERE type='table' 
         AND name NOT LIKE 'sqlite_%' 
-        AND name != '_changes'
-    `)
+        AND name != ?`, changesTable)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +175,7 @@ func (tb *ThunderBase) pollChanges() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		rows, err := tb.db.Query("SELECT id, collection, event, data FROM _changes ORDER BY id ASC LIMIT 100")
+		rows, err := tb.db.Query(fmt.Sprintf("SELECT id, collection, event, data FROM %s ORDER BY id ASC LIMIT 100", changesTable))
 		if err != nil {
 			log.Printf("Error querying changes: %v", err)
 			continue
@@ -150,7 +197,7 @@ func (tb *ThunderBase) pollChanges() {
 
 		if len(processedIDs) > 0 {
 			_, err := tb.db.Exec(
-				"DELETE FROM _changes WHERE id IN ("+placeholders(len(processedIDs))+")",
+				fmt.Sprintf("DELETE FROM %s WHERE id IN ("+placeholders(len(processedIDs))+")", changesTable),
 				intsToInterface(processedIDs)...,
 			)
 			if err != nil {
@@ -219,7 +266,7 @@ func (tb *ThunderBase) createTable(name string) error {
 	}
 	log.Printf("> Created table: %s", name)
 
-	return tb.initDatabase() // Re-init to create triggers for the new table
+	return tb.initDatabase()
 }
 
 func (tb *ThunderBase) insertDummyData(tableName string) error {
@@ -228,7 +275,7 @@ func (tb *ThunderBase) insertDummyData(tableName string) error {
 }
 
 func main() {
-	tb, err := NewThunderBase("./thunderbase.db")
+	tb, err := NewThunderBase(dbPath)
 	if err != nil {
 		log.Fatalf("Failed to initialize ThunderBase: %v", err)
 	}
@@ -248,6 +295,7 @@ func main() {
 	http.HandleFunc("/insert", func(w http.ResponseWriter, r *http.Request) {
 		err := tb.insertDummyData("users")
 		if err != nil {
+			log.Printf("Error inserting dummy data: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

@@ -132,6 +132,7 @@
     />
     <button onclick="connectWebSocket()">Connect</button>
     <button onclick="disconnectWebSocket()">Disconnect</button>
+    <button onclick="insertData()">Insert data</button>
 </header>
 <div id="log"></div>
 <footer>
@@ -157,6 +158,12 @@
         div.classList.add("msg");
         logElement.appendChild(div);
         logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    function insertData() {
+        fetch("/insert")
+            .then(response => response.json())
+            .then(data => console.log(data));
     }
 
     function connectWebSocket() {
