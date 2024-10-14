@@ -12,6 +12,7 @@
             --color-border: #393b40;
             --color-text: #ffffff;
             --color-text-muted: #d4d4d8;
+            --color-json-text: #bef264;
             --color-primary: #0a84ff;
             --color-primary-hover: #007aff;
             --color-error: #ff6b6b;
@@ -77,6 +78,14 @@
             margin: 2px;
             padding: 3px 10px;
             line-height: 1.5;
+        }
+
+        .msg.json {
+            background-color: black;
+            color: var(--color-json-text);
+            overflow-x: auto;
+            padding-top: 10px;
+            padding-bottom: 10px;
         }
 
         .msg.error {
@@ -154,8 +163,7 @@
         const now = new Date();
 
         div.textContent = `${now.getMilliseconds().toString().padStart(3, "0")}ms @ ${now.toLocaleTimeString()} - ${message}`;
-        div.classList.add(type);
-        div.classList.add("msg");
+        div.classList.add("msg", type);
         logElement.appendChild(div);
         logElement.scrollTop = logElement.scrollHeight;
     }
@@ -177,13 +185,33 @@
         };
 
         socket.onmessage = function (event) {
-            log(`Received: ${event.data}`, "info");
             try {
-                const jsonData = JSON.parse(event.data);
-                console.log("Parsed JSON data:", jsonData);
+                const data = JSON.parse(event.data);
+                let parsed = {
+                    ...data,
+                    data: data.data ? JSON.parse(data.data) : null,
+                }
+
+                if (!parsed.data) {
+                    delete parsed.data
+                }
+
+
+                const formattedJson = JSON.stringify(parsed, null, 2);
+
+                log(`Received (JSON):`, "info");
+
+                const pre = document.createElement('pre');
+                pre.textContent = formattedJson;
+                pre.classList.add('msg', 'json');
+
+                logElement.appendChild(pre);
+                console.log("Parsed JSON data:", data);
             } catch (error) {
+                log(`Received (non-JSON): ${event.data}`, "info");
                 console.error("Error parsing JSON:", error);
             }
+            logElement.scrollTop = logElement.scrollHeight;
         };
 
         socket.onclose = function (event) {

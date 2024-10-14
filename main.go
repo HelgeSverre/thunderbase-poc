@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -293,13 +294,18 @@ func main() {
 	http.HandleFunc("/ws", tb.handleConnections)
 
 	http.HandleFunc("/insert", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
 		err := tb.insertDummyData("users")
 		if err != nil {
 			log.Printf("Error inserting dummy data: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
 		}
-		w.Write([]byte("Inserted dummy data"))
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
 
 	// Serve a simple HTML page for testing
