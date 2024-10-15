@@ -44,17 +44,13 @@
         outline-offset: 2px;
       }
 
-      header,
-      footer {
+      header {
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: flex-start;
         gap: 10px;
-      }
 
-      header,
-      footer {
         background-color: var(--color-surface);
         padding: 10px;
       }
@@ -144,15 +140,6 @@
       <button onclick="insertData()">Insert data</button>
     </header>
     <div id="log"></div>
-    <footer>
-      <input
-        type="text"
-        id="messageInput"
-        placeholder="Enter message to send"
-        style="width: 500px"
-      />
-      <button onclick="sendMessage()">Send Message</button>
-    </footer>
 
     <script>
       let socket;
@@ -229,18 +216,6 @@
         if (socket) {
           socket.close();
           log("WebSocket disconnected by user", "info");
-        } else {
-          log("No active WebSocket connection", "error");
-        }
-      }
-
-      function sendMessage() {
-        const messageInput = document.getElementById("messageInput");
-        const message = messageInput.value;
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.send(message);
-          log(`Sent: ${message}`, "success");
-          messageInput.value = "";
         } else {
           log("No active WebSocket connection", "error");
         }

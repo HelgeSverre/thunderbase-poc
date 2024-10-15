@@ -35,45 +35,6 @@ solution similar to Firebase or PocketBase.
 - `/ws`: WebSocket endpoint for real-time updates
 - `/insert`: HTTP endpoint to insert dummy data (for testing)
 
-## Client SDK
-
-```javascript
-// Usage example
-const tb = new ThunderBase("http://localhost:8080");
-
-await tb.connect();
-
-const users = tb.collection("users");
-
-// Fetch all users whose name starts with 'helge'
-const helgeUsers = await users.all({name: "like 'helge%'"});
-console.log("Users starting with helge:", helgeUsers);
-
-// Create a new user
-const newUser = await users.create({
-    name: "John Doe",
-    email: "john@example.com",
-});
-console.log("New user created:", newUser);
-
-// Update a user
-const updatedUser = await users.update(newUser.id, {name: "Jane Doe"});
-console.log("User updated:", updatedUser);
-
-// Get a single user
-const user = await users.getOne(newUser.id);
-console.log("Single user:", user);
-
-// Subscribe to all changes in the users collection
-users.subscribe("*", (event) => {
-    console.log("User change event:", event);
-});
-
-// Delete a user
-await users.delete(newUser.id);
-console.log("User deleted");
-```
-
 ## Future Exploration
 
 This proof of concept is just the beginning. Future areas of exploration include:

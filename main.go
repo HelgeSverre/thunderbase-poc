@@ -16,6 +16,7 @@ import (
 
 const dbPath = "./thunderbase.db"
 const changesTable = "_changes"
+const pollIntervalMs = 100
 
 type ChangeEvent struct {
 	Collection string      `json:"collection"`
@@ -172,7 +173,7 @@ func (tb *ThunderBase) getTables() ([]string, error) {
 }
 
 func (tb *ThunderBase) pollChanges() {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(pollIntervalMs * time.Millisecond)
 	defer ticker.Stop()
 
 	for range ticker.C {

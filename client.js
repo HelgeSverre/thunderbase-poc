@@ -1,3 +1,5 @@
+// NOTE: This is not implemented yet, just a sketch of what the client library could look like.
+
 export class ThunderBase {
   constructor(url) {
     this.baseUrl = url;
