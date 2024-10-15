@@ -1,164 +1,164 @@
 <!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ThunderBase WebSocket Debug Client</title>
     <style>
-        :root {
-            --color-background: #1a1a1a;
-            --color-surface: #2b2d30;
-            --color-input-background: #1e1f22;
-            --color-border: #393b40;
-            --color-text: #ffffff;
-            --color-text-muted: #d4d4d8;
-            --color-json-text: #bef264;
-            --color-primary: #0a84ff;
-            --color-primary-hover: #007aff;
-            --color-error: #ff6b6b;
-            --color-success: #4cd964;
-            --color-info: #5ac8fa;
-        }
+      :root {
+        --color-background: #1a1a1a;
+        --color-surface: #2b2d30;
+        --color-input-background: #1e1f22;
+        --color-border: #393b40;
+        --color-text: #ffffff;
+        --color-text-muted: #d4d4d8;
+        --color-json-text: #bef264;
+        --color-primary: #0a84ff;
+        --color-primary-hover: #007aff;
+        --color-error: #ff6b6b;
+        --color-success: #4cd964;
+        --color-info: #5ac8fa;
+      }
 
-        * {
-            box-sizing: border-box !important;
-        }
+      * {
+        box-sizing: border-box !important;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-            "Helvetica Neue", sans-serif;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100vh;
-            background-color: var(--color-background);
-            color: var(--color-text);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Helvetica Neue", sans-serif;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: var(--color-background);
+        color: var(--color-text);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
 
-        input:focus-visible,
-        button:focus-visible {
-            outline: 2px solid var(--color-primary);
-            outline-offset: 2px;
-        }
+      input:focus-visible,
+      button:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+      }
 
-        header,
-        footer {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
-        }
+      header,
+      footer {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+      }
 
-        header,
-        footer {
-            background-color: var(--color-surface);
-            padding: 10px;
-        }
+      header,
+      footer {
+        background-color: var(--color-surface);
+        padding: 10px;
+      }
 
-        #log {
-            flex: 1;
-            background-color: var(--color-input-background);
-            border: 1px solid var(--color-border);
-            padding: 10px;
-            overflow-y: auto;
-            font-family: "SF Mono", "Menlo", "Monaco", "Consolas", "Courier New",
-            monospace;
-            font-size: 14px;
-            font-weight: normal;
-            line-height: 1.4;
-        }
+      #log {
+        flex: 1;
+        background-color: var(--color-input-background);
+        border: 1px solid var(--color-border);
+        padding: 10px;
+        overflow-y: auto;
+        font-family: "SF Mono", "Menlo", "Monaco", "Consolas", "Courier New",
+          monospace;
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 1.4;
+      }
 
-        .msg {
-            display: block;
-            background-color: black;
-            margin: 2px;
-            padding: 3px 10px;
-            line-height: 1.5;
-        }
+      .msg {
+        display: block;
+        background-color: black;
+        margin: 2px;
+        padding: 3px 10px;
+        line-height: 1.5;
+      }
 
-        .msg.json {
-            background-color: black;
-            color: var(--color-json-text);
-            overflow-x: auto;
-            padding-top: 10px;
-            padding-bottom: 10px;
-        }
+      .msg.json {
+        background-color: black;
+        color: var(--color-json-text);
+        overflow-x: auto;
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
 
-        .msg.error {
-            color: var(--color-error);
-        }
+      .msg.error {
+        color: var(--color-error);
+      }
 
-        .msg.info {
-            color: var(--color-info);
-        }
+      .msg.info {
+        color: var(--color-info);
+      }
 
-        .msg.success {
-            color: var(--color-success);
-        }
+      .msg.success {
+        color: var(--color-success);
+      }
 
-        .msg.comment {
-            color: var(--color-text-muted);
-        }
+      .msg.comment {
+        color: var(--color-text-muted);
+      }
 
-        input[type="text"] {
-            background-color: var(--color-input-background);
-            border: 1px solid var(--color-border);
-            color: var(--color-text);
-            padding: 6px 12px;
-            border-radius: 4px;
-            line-height: 20px;
-            height: 32px;
-        }
+      input[type="text"] {
+        background-color: var(--color-input-background);
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        padding: 6px 12px;
+        border-radius: 4px;
+        line-height: 20px;
+        height: 32px;
+      }
 
-        button {
-            background-color: var(--color-primary);
-            color: var(--color-text);
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            height: 32px;
-            line-height: 20px;
-        }
+      button {
+        background-color: var(--color-primary);
+        color: var(--color-text);
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        height: 32px;
+        line-height: 20px;
+      }
 
-        button:hover {
-            background-color: var(--color-primary-hover);
-        }
+      button:hover {
+        background-color: var(--color-primary-hover);
+      }
     </style>
-</head>
-<body>
-<header>
-    <input
-            type="text"
-            id="wsUrl"
-            value="ws://localhost:8080/ws"
-            placeholder="WebSocket URL"
-            style="width: 500px"
-    />
-    <button onclick="connectWebSocket()">Connect</button>
-    <button onclick="disconnectWebSocket()">Disconnect</button>
-    <button onclick="insertData()">Insert data</button>
-</header>
-<div id="log"></div>
-<footer>
-    <input
-            type="text"
-            id="messageInput"
-            placeholder="Enter message to send"
-            style="width: 500px"
-    />
-    <button onclick="sendMessage()">Send Message</button>
-</footer>
+  </head>
+  <body>
+    <header>
+      <input
+        type="text"
+        id="wsUrl"
+        value="ws://localhost:8080/ws"
+        placeholder="WebSocket URL"
+        style="width: 500px"
+      />
+      <button onclick="connectWebSocket()">Connect</button>
+      <button onclick="disconnectWebSocket()">Disconnect</button>
+      <button onclick="insertData()">Insert data</button>
+    </header>
+    <div id="log"></div>
+    <footer>
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Enter message to send"
+        style="width: 500px"
+      />
+      <button onclick="sendMessage()">Send Message</button>
+    </footer>
 
-<script>
-    let socket;
-    const logElement = document.getElementById("log");
+    <script>
+      let socket;
+      const logElement = document.getElementById("log");
 
-    function log(message, type = "") {
+      function log(message, type = "") {
         const div = document.createElement("div");
         const now = new Date();
 
@@ -166,93 +166,93 @@
         div.classList.add("msg", type);
         logElement.appendChild(div);
         logElement.scrollTop = logElement.scrollHeight;
-    }
+      }
 
-    function insertData() {
+      function insertData() {
         fetch("/insert")
-            .then(response => response.json())
-            .then(data => console.log(data));
-    }
+          .then((response) => response.json())
+          .then((data) => console.log(data));
+      }
 
-    function connectWebSocket() {
+      function connectWebSocket() {
         const url = document.getElementById("wsUrl").value;
         log(`Attempting to connect to ${url}`, "comment");
 
         socket = new WebSocket(url);
 
         socket.onopen = function (event) {
-            log("WebSocket connection established", "success");
+          log("WebSocket connection established", "success");
         };
 
         socket.onmessage = function (event) {
-            try {
-                const data = JSON.parse(event.data);
-                let parsed = {
-                    ...data,
-                    data: data.data ? JSON.parse(data.data) : null,
-                }
+          try {
+            const data = JSON.parse(event.data);
+            let parsed = {
+              ...data,
+              data: data.data ? JSON.parse(data.data) : null,
+            };
 
-                if (!parsed.data) {
-                    delete parsed.data
-                }
-
-
-                const formattedJson = JSON.stringify(parsed, null, 2);
-
-                log(`Received (JSON):`, "info");
-
-                const pre = document.createElement('pre');
-                pre.textContent = formattedJson;
-                pre.classList.add('msg', 'json');
-
-                logElement.appendChild(pre);
-                console.log("Parsed JSON data:", data);
-            } catch (error) {
-                log(`Received (non-JSON): ${event.data}`, "info");
-                console.error("Error parsing JSON:", error);
+            if (!parsed.data) {
+              delete parsed.data;
             }
-            logElement.scrollTop = logElement.scrollHeight;
+
+            const formattedJson = JSON.stringify(parsed, null, 2);
+
+            log(`Received (JSON):`, "info");
+
+            const pre = document.createElement("pre");
+            pre.textContent = formattedJson;
+            pre.classList.add("msg", "json");
+
+            logElement.appendChild(pre);
+            console.log("Parsed JSON data:", data);
+          } catch (error) {
+            log(`Received (non-JSON): ${event.data}`, "info");
+            console.error("Error parsing JSON:", error);
+          }
+          logElement.scrollTop = logElement.scrollHeight;
         };
 
         socket.onclose = function (event) {
-            log(
-                `WebSocket connection closed. Code: ${event.code}, Reason: '${event.reason}'`,
-                "comment",
-            );
+          log(
+            `WebSocket connection closed. Code: ${event.code}, Reason: '${event.reason}'`,
+            "comment",
+          );
         };
 
         socket.onerror = function (error) {
-            log(`WebSocket error: ${error.message}`, "error");
+          log(`WebSocket error: ${error.message}`, "error");
         };
-    }
+      }
 
-    function disconnectWebSocket() {
+      function disconnectWebSocket() {
         if (socket) {
-            socket.close();
-            log("WebSocket disconnected by user", "info");
+          socket.close();
+          log("WebSocket disconnected by user", "info");
         } else {
-            log("No active WebSocket connection", "error");
+          log("No active WebSocket connection", "error");
         }
-    }
+      }
 
-    function sendMessage() {
+      function sendMessage() {
         const messageInput = document.getElementById("messageInput");
         const message = messageInput.value;
         if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(message);
-            log(`Sent: ${message}`, "success");
-            messageInput.value = "";
+          socket.send(message);
+          log(`Sent: ${message}`, "success");
+          messageInput.value = "";
         } else {
-            log("No active WebSocket connection", "error");
+          log("No active WebSocket connection", "error");
         }
-    }
+      }
 
-    document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener("DOMContentLoaded", function () {
         log(`Page loaded`, "comment");
-        document.getElementById("wsUrl").value = `ws://${window.location.host}/ws`;
+        document.getElementById("wsUrl").value =
+          `ws://${window.location.host}/ws`;
 
         connectWebSocket();
-    });
-</script>
-</body>
+      });
+    </script>
+  </body>
 </html>

@@ -1,0 +1,106 @@
+# ThunderBase - (PoC) Real-time Backend with SQLite and WebSockets
+
+![ThunderBase Logo](./art/logo.svg)
+
+## Proof of Concept
+
+ThunderBase is a proof-of-concept application that demonstrates real-time database subscriptions using SQLite,
+WebSockets, and database triggers. This project explores the possibility of creating a lightweight, real-time database
+solution similar to Firebase or PocketBase.
+
+### Features
+
+- SQLite backend for data storage
+- WebSocket connections for real-time updates
+- Database triggers for change detection
+- Automatic broadcasting of database changes to connected clients
+
+## How It Works
+
+1. **SQLite Database**: ThunderBase uses SQLite as its primary data store.
+2. **Change Detection**: Database triggers are automatically created for each table to detect INSERT, UPDATE, and DELETE
+   operations.
+3. **WebSocket Server**: A WebSocket server is set up to handle client connections.
+4. **Real-time Updates**: When a change occurs in the database, it's broadcasted to all connected clients in real-time.
+
+## Getting Started
+
+1. Clone the repository
+2. Run `go mod tidy` to install dependencies
+3. Start the server: `go run main.go`
+4. Open `http://localhost:8080` in your browser to see the demo
+
+## API
+
+- `/ws`: WebSocket endpoint for real-time updates
+- `/insert`: HTTP endpoint to insert dummy data (for testing)
+
+## Client SDK
+
+```javascript
+// Usage example
+const tb = new ThunderBase("http://localhost:8080");
+
+await tb.connect();
+
+const users = tb.collection("users");
+
+// Fetch all users whose name starts with 'helge'
+const helgeUsers = await users.all({name: "like 'helge%'"});
+console.log("Users starting with helge:", helgeUsers);
+
+// Create a new user
+const newUser = await users.create({
+    name: "John Doe",
+    email: "john@example.com",
+});
+console.log("New user created:", newUser);
+
+// Update a user
+const updatedUser = await users.update(newUser.id, {name: "Jane Doe"});
+console.log("User updated:", updatedUser);
+
+// Get a single user
+const user = await users.getOne(newUser.id);
+console.log("Single user:", user);
+
+// Subscribe to all changes in the users collection
+users.subscribe("*", (event) => {
+    console.log("User change event:", event);
+});
+
+// Delete a user
+await users.delete(newUser.id);
+console.log("User deleted");
+```
+
+## Future Exploration
+
+This proof of concept is just the beginning. Future areas of exploration include:
+
+- Authentication and authorization
+- Data validation and schema enforcement
+- Query API for more complex data operations
+- Scaling considerations for larger datasets and more concurrent users
+- Offline support and data syncing
+
+## Motivation
+
+The goal of this project is to understand the challenges and complexities involved in building a real-time database
+system. By creating a simplified version, we can:
+
+1. Identify the core components required for such a system
+2. Understand the performance implications of different design choices
+3. Explore the limitations of using SQLite for real-time applications
+4. Gain insights into the architecture of more complex systems like Firebase or PocketBase
+
+## Feedback Welcome
+
+This is an early-stage proof of concept, and I'm excited to hear what you think! Feel free to open issues, suggest
+improvements, or share your thoughts on the approach.
+
+## Formatting
+
+```shell
+npx prettier *.html *.js README.md --write
+```
