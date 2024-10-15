@@ -25,6 +25,10 @@ solution similar to Firebase or PocketBase.
 3. **WebSocket Server**: A WebSocket server is set up to handle client connections.
 4. **Real-time Updates**: When a change occurs in the database, it's broadcasted to all connected clients in real-time.
 
+## Demo
+
+[![Demo Video](https://brief.cleanshot.cloud/media/70425/OdtPa6rcDv0BevDyxhPxcUnOAagbAl4fuObaOPPR.mp4)](https://share.helgesver.re/2wHQCWpm)
+
 ## Getting Started
 
 1. Clone the repository
