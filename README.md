@@ -1,6 +1,8 @@
-# ThunderBase - (PoC) Real-time Backend with SQLite and WebSockets
+# 🌩️ ThunderBase - Real-time Backend with SQLite and WebSockets
 
-![ThunderBase Logo](./art/logo.svg)
+<center>
+<img src="./art/logo.svg" width="200" alt="ThunderBase Logo">
+</center>
 
 ## Proof of Concept
 
@@ -59,6 +61,20 @@ system. By creating a simplified version, we can:
 
 This is an early-stage proof of concept, and I'm excited to hear what you think! Feel free to open issues, suggest
 improvements, or share your thoughts on the approach.
+
+## Installation
+
+```shell
+# Clone the repository
+git clone git@github.com:HelgeSverre/thunderbase-poc.git
+cd thunderbase-poc
+
+# Install dependencies
+go mod tidy
+
+# Start the server
+go run thunderbase
+```
 
 ## Formatting
 
